@@ -1,0 +1,13 @@
+# Oracle Framework Ignore
+ψ/
+psi/
+.claude/
+.github/copilot-instructions.md
+
+# Standard Ignores
+node_modules/
+.DS_Store
+.env
+.env.local
+dist/
+build/
