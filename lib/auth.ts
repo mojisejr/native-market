@@ -25,7 +25,7 @@ export function isValidMarketPassword(password: string): boolean {
     throw new Error("MARKET_APP_PASSWORD is required");
   }
 
-  return password === expected;
+  return password.trim() === expected.trim();
 }
 
 export async function createSessionToken(): Promise<string> {
