@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { recordSaleAction, type LedgerActionState } from "@/actions/transaction";
 import type { MarketInventoryRow } from "@/lib/market-types";
+import { calculatePromotionForItem, calculateSaleTotals } from "@/lib/promo-calculator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,18 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+function formatPromotionLabel(item: MarketInventoryRow): string | null {
+  if (item.promo_rule === null) {
+    return null;
+  }
+
+  if (item.promo_rule.type === "bulk") {
+    return `${item.promo_rule.threshold} ต้น ${formatCurrency(item.promo_rule.price)}`;
+  }
+
+  return `ซื้อ ${item.promo_rule.buy} แถม ${item.promo_rule.free}`;
+}
+
 export function PosGrid({ inventory }: PosGridProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [state, formAction, pending] = useActionState(recordSaleAction, initialState);
@@ -34,13 +47,32 @@ export function PosGrid({ inventory }: PosGridProps) {
           name: item.name,
           price: item.price,
           qty: quantities[item.id] ?? 0,
+          promoRule: item.promo_rule,
         }))
         .filter((item) => item.qty > 0),
     [inventory, quantities],
   );
 
-  const total = useMemo(
-    () => selectedItems.reduce((sum, item) => sum + item.price * item.qty, 0),
+  const totals = useMemo(
+    () =>
+      calculateSaleTotals(
+        selectedItems.map((item) => ({
+          unitPrice: item.price,
+          qty: item.qty,
+          promoRule: item.promoRule,
+        })),
+      ),
+    [selectedItems],
+  );
+
+  const itemsPayload = useMemo(
+    () =>
+      selectedItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+      })),
     [selectedItems],
   );
 
@@ -88,11 +120,35 @@ export function PosGrid({ inventory }: PosGridProps) {
           <div className="grid gap-3 sm:grid-cols-2">
             {inventory.map((item) => {
               const qty = quantities[item.id] ?? 0;
+              const promotionLabel = formatPromotionLabel(item);
+              const lineCalculation =
+                qty > 0
+                  ? calculatePromotionForItem({
+                      unitPrice: item.price,
+                      qty,
+                      promoRule: item.promo_rule,
+                    })
+                  : null;
 
               return (
                 <div key={item.id} className="glass-card p-3">
-                  <p className="text-sm font-medium text-white">{item.name}</p>
-                  <p className="mt-1 text-xs text-white/70">คงเหลือ {item.stock} | {formatCurrency(item.price)}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-white">{item.name}</p>
+                    {promotionLabel ? (
+                      <span className="rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-[10px] font-medium text-amber-200">
+                        โปรโมชั่น
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs text-white/70">
+                    คงเหลือ {item.stock} | {formatCurrency(item.price)}
+                  </p>
+                  {promotionLabel ? <p className="mt-1 text-xs text-amber-200/90">{promotionLabel}</p> : null}
+                  {lineCalculation && lineCalculation.discount > 0 ? (
+                    <p className="mt-1 text-xs text-emerald-300">
+                      ใช้โปรแล้ว ลด {formatCurrency(lineCalculation.discount)} เหลือ {formatCurrency(lineCalculation.total)}
+                    </p>
+                  ) : null}
                   <div className="mt-3 flex items-center gap-2">
                     <Button type="button" variant="secondary" className="h-8 px-3" onClick={() => decreaseQty(item.id)}>
                       -
@@ -120,7 +176,7 @@ export function PosGrid({ inventory }: PosGridProps) {
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-3">
-            <input type="hidden" name="itemsJson" value={JSON.stringify(selectedItems)} />
+            <input type="hidden" name="itemsJson" value={JSON.stringify(itemsPayload)} />
 
             <label className="block text-xs text-white/70" htmlFor="paymentMethod">
               วิธีชำระเงิน
@@ -140,7 +196,13 @@ export function PosGrid({ inventory }: PosGridProps) {
 
             <div className="rounded-xl border border-white/10 bg-black/20 p-3">
               <p className="text-xs text-white/70">รวมทั้งหมด</p>
-              <p className="text-xl font-semibold text-white">{formatCurrency(total)}</p>
+              {totals.discount > 0 ? (
+                <p className="text-xs text-white/50 line-through">{formatCurrency(totals.subtotal)}</p>
+              ) : null}
+              <p className="text-xl font-semibold text-white">{formatCurrency(totals.total)}</p>
+              {totals.discount > 0 ? (
+                <p className="mt-1 text-xs text-emerald-300">ประหยัดรวม {formatCurrency(totals.discount)}</p>
+              ) : null}
               <p className="mt-1 text-xs text-white/60">{selectedItems.length} รายการสินค้า</p>
             </div>
 

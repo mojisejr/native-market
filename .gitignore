@@ -13,3 +13,4 @@ out/
 .env.local
 dist/
 build/
+sql/

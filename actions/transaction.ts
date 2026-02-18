@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getInventory, updateStock } from "@/actions/inventory";
+import { calculatePromotionForItem } from "@/lib/promo-calculator";
 import type {
+  MarketInventoryRow,
   MarketPaymentMethod,
   MarketSaleItem,
   MarketSummary,
@@ -83,8 +85,73 @@ function parseTransactionRows(rows: unknown[]): MarketTransactionRow[] {
   });
 }
 
-function calculateSaleAmount(items: MarketSaleItem[]): number {
-  return items.reduce((sum, item) => sum + item.qty * item.price, 0);
+type MarketSaleLedgerItem = MarketSaleItem & {
+  original_price: number;
+  subtotal: number;
+  line_total: number;
+  discount_amount: number;
+  promotion_applied: boolean;
+  paid_qty: number;
+  free_qty: number;
+  promo_rule: MarketInventoryRow["promo_rule"];
+};
+
+function roundCurrency(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+function buildSaleLedger(items: MarketSaleItem[], inventory: MarketInventoryRow[]): {
+  ledgerItems: MarketSaleLedgerItem[];
+  netAmount: number;
+  discountAmount: number;
+  subtotalAmount: number;
+} {
+  const inventoryById = new Map(inventory.map((item) => [item.id, item]));
+  const ledgerItems: MarketSaleLedgerItem[] = [];
+
+  let netAmount = 0;
+  let discountAmount = 0;
+  let subtotalAmount = 0;
+
+  for (const item of items) {
+    const inventoryItem = inventoryById.get(item.id);
+
+    if (!inventoryItem) {
+      throw new Error(`Item not found in inventory: ${item.name}`);
+    }
+
+    const line = calculatePromotionForItem({
+      unitPrice: inventoryItem.price,
+      qty: item.qty,
+      promoRule: inventoryItem.promo_rule,
+    });
+
+    ledgerItems.push({
+      id: inventoryItem.id,
+      name: inventoryItem.name,
+      qty: item.qty,
+      price: inventoryItem.price,
+      original_price: inventoryItem.price,
+      subtotal: line.subtotal,
+      line_total: line.total,
+      discount_amount: line.discount,
+      promotion_applied: line.promotionApplied,
+      paid_qty: line.paidQty,
+      free_qty: line.freeQty,
+      promo_rule: inventoryItem.promo_rule,
+    });
+
+    netAmount += line.total;
+    discountAmount += line.discount;
+    subtotalAmount += line.subtotal;
+  }
+
+  return {
+    ledgerItems,
+    netAmount: roundCurrency(netAmount),
+    discountAmount: roundCurrency(discountAmount),
+    subtotalAmount: roundCurrency(subtotalAmount),
+  };
 }
 
 export type LedgerActionState = {
@@ -136,9 +203,10 @@ export async function recordSale(input: {
 }): Promise<void> {
   const parsed = recordSaleInputSchema.parse(input);
   const inventory = await getInventory();
+  const inventoryById = new Map(inventory.map((item) => [item.id, item]));
 
   for (const item of parsed.items) {
-    const inventoryItem = inventory.find((candidate) => candidate.id === item.id);
+    const inventoryItem = inventoryById.get(item.id);
 
     if (!inventoryItem) {
       throw new Error(`Item not found in inventory: ${item.name}`);
@@ -149,8 +217,10 @@ export async function recordSale(input: {
     }
   }
 
+  const { ledgerItems, netAmount, discountAmount, subtotalAmount } = buildSaleLedger(parsed.items, inventory);
+
   for (const item of parsed.items) {
-    const inventoryItem = inventory.find((candidate) => candidate.id === item.id);
+    const inventoryItem = inventoryById.get(item.id);
 
     if (!inventoryItem) {
       throw new Error(`Item not found in inventory: ${item.name}`);
@@ -160,13 +230,17 @@ export async function recordSale(input: {
   }
 
   const supabase = getSupabaseServerClient();
-  const amount = calculateSaleAmount(parsed.items);
+  const discountNote =
+    discountAmount > 0
+      ? `promo discount ${discountAmount.toFixed(2)} (subtotal ${subtotalAmount.toFixed(2)} -> net ${netAmount.toFixed(2)})`
+      : null;
+  const mergedNote = [parsed.note?.trim(), discountNote].filter((value): value is string => Boolean(value)).join(" | ");
 
   const { error } = await supabase.from("market_transactions").insert({
     type: "sale",
-    amount,
-    items: parsed.items,
-    note: parsed.note ?? null,
+    amount: netAmount,
+    items: ledgerItems,
+    note: mergedNote.length > 0 ? mergedNote : null,
     payment_method: parsed.paymentMethod,
     event_tag: parsed.eventTag ?? null,
   });

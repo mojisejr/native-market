@@ -1,9 +1,24 @@
+export type MarketBulkPromotionRule = {
+  type: "bulk";
+  threshold: number;
+  price: number;
+};
+
+export type MarketBuyXGetYPromotionRule = {
+  type: "buy_x_get_y";
+  buy: number;
+  free: number;
+};
+
+export type MarketPromotionRule = MarketBulkPromotionRule | MarketBuyXGetYPromotionRule;
+
 export type MarketInventoryRow = {
   id: string;
   name: string;
   price: number;
   stock: number;
   category: string;
+  promo_rule: MarketPromotionRule | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
