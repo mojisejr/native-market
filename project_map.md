@@ -11,12 +11,16 @@ Core principle: **Simple + Robust** for solo operation.
 - .env.local: local environment values (git-ignored)
 - app/: App Router pages (`/`, `/login`, `/dashboard`)
 - actions/auth.ts: server actions for login/logout
+- actions/inventory.ts: stock management server actions
+- actions/transaction.ts: sales and expense ledger actions
 - lib/auth.ts: JWT session helpers (`jose`)
+- lib/market-types.ts: centralized type definitions
 - middleware.ts: route protection for login/dashboard flow
 - components/ui/: MimiVibe base components (`Button`, `Card`, `Input`)
+- components/pos/: POS specific modules (`PosGrid`, `ExpenseForm`)
 
-## 3) Data Flow (Planned)
-UI (Next.js) -> Server Actions -> Auth Cookie/JWT -> Supabase (market_* tables)
+## 3) Data Flow (Verified)
+UI (Next.js) -> Server Actions -> Zod Validation -> Supabase (market_* tables)
 
 ## 4) Known Challenges
 - Keep scope small to avoid over-engineering
