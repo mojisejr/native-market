@@ -4,26 +4,29 @@
 Native Market exists to provide a fast, reliable, low-friction POS for short event operations.
 Core principle: **Simple + Robust** for solo operation.
 
-## 2) Key Landmarks
-- README.md: project purpose and setup summary
-- project_map.md: architecture map and navigation
-- .env.example: required environment keys (no secrets)
-- .env.local: local environment values (git-ignored)
-- app/: App Router pages (`/`, `/login`, `/dashboard`)
-- actions/auth.ts: server actions for login/logout
-- actions/inventory.ts: stock management server actions
-- actions/transaction.ts: sales and expense ledger actions
-- lib/auth.ts: JWT session helpers (`jose`)
-- lib/market-types.ts: centralized type definitions
-- middleware.ts: route protection for login/dashboard flow
-- components/ui/: MimiVibe base components (`Button`, `Card`, `Input`)
-- components/pos/: POS specific modules (`PosGrid`, `ExpenseForm`)
+## 2) Landmarks & Architecture
+- **Repo**: [https://github.com/mojisejr/native-market](https://github.com/mojisejr/native-market)
+- **Stack**: Next.js 14 (App Router), Tailwind CSS, Supabase (PostgreSQL), Lucide React.
+- **Root Files**:
+    - `project_map.md`: Architecture map and navigation.
+    - `package.json`: Dependencies and scripts.
+    - `middleware.ts`: Route protection (Auth).
+- **Core Modules**:
+    - `app/`: Pages for `/`, `/login`, and `/dashboard`.
+    - `actions/`: Server Actions for `auth.ts`, `inventory.ts`, and `transaction.ts`.
+    - `lib/`: Utilities, `market-types.ts`, and `promo-calculator.ts`.
+    - `components/pos/`: POS specific UI components (`pos-grid.tsx`).
+    - `sql/init.sql`: Database schema definition.
 
 ## 3) Data Flow (Verified)
 UI (Next.js) -> Server Actions -> Zod Validation -> Supabase (market_* tables)
 
-## 4) Known Challenges
-- Keep scope small to avoid over-engineering
-- Enforce strict secret hygiene
-- Preserve git isolation from HQ root repo
-- Next.js 16 deprecates middleware convention in favor of proxy (future migration)
+## 4) Evolution Loop (Phases)
+- **Phase 1-3**: Core POS UI, Inventory, and Ledger Logic (Verified).
+- **Phase 4**: Promotion Engine & Server-side Integrity (Completed).
+- **Current Status**: Stable, Ready for Event usage.
+
+## 5) Known Challenges
+- Keep scope small to avoid over-engineering.
+- Enforce strict secret hygiene (Supabase Keys).
+- Preserve local dev environment (`.env.local`).
