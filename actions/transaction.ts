@@ -87,6 +87,47 @@ function calculateSaleAmount(items: MarketSaleItem[]): number {
   return items.reduce((sum, item) => sum + item.qty * item.price, 0);
 }
 
+export type LedgerActionState = {
+  success?: string;
+  error?: string;
+};
+
+const saleFormSchema = z.object({
+  itemsJson: z.string().min(2),
+  paymentMethod: paymentMethodSchema,
+  note: z.string().max(500).optional(),
+  eventTag: z.string().max(100).optional(),
+});
+
+const expenseFormSchema = z.object({
+  amount: z.string().min(1),
+  note: z.string().min(1).max(500),
+  paymentMethod: paymentMethodSchema,
+  eventTag: z.string().max(100).optional(),
+});
+
+function readOptionalString(formData: FormData, key: string): string | undefined {
+  const value = formData.get(key);
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function parseSaleItemsJson(itemsJson: string): MarketSaleItem[] {
+  const parsed = JSON.parse(itemsJson) as unknown;
+  const result = z.array(saleItemSchema).safeParse(parsed);
+
+  if (!result.success) {
+    throw new Error("รายการสินค้าไม่ถูกต้อง");
+  }
+
+  return result.data;
+}
+
 export async function recordSale(input: {
   items: MarketSaleItem[];
   paymentMethod: MarketPaymentMethod;
@@ -238,4 +279,76 @@ export async function getRecentTransactions(limit = 12): Promise<MarketTransacti
   }
 
   return parseTransactionRows((data ?? []) as unknown[]);
+}
+
+export async function recordSaleAction(
+  _prevState: LedgerActionState,
+  formData: FormData,
+): Promise<LedgerActionState> {
+  const rawInput = {
+    itemsJson: typeof formData.get("itemsJson") === "string" ? String(formData.get("itemsJson")) : "",
+    paymentMethod: typeof formData.get("paymentMethod") === "string" ? String(formData.get("paymentMethod")) : "",
+    note: readOptionalString(formData, "note"),
+    eventTag: readOptionalString(formData, "eventTag"),
+  };
+
+  const parsedInput = saleFormSchema.safeParse(rawInput);
+
+  if (!parsedInput.success) {
+    return { error: "ข้อมูลการขายไม่ครบหรือไม่ถูกต้อง" };
+  }
+
+  try {
+    const items = parseSaleItemsJson(parsedInput.data.itemsJson);
+
+    await recordSale({
+      items,
+      paymentMethod: parsedInput.data.paymentMethod,
+      note: parsedInput.data.note,
+      eventTag: parsedInput.data.eventTag,
+    });
+
+    return { success: "บันทึกการขายเรียบร้อย" };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "ไม่สามารถบันทึกการขายได้";
+    return { error: message };
+  }
+}
+
+export async function recordExpenseAction(
+  _prevState: LedgerActionState,
+  formData: FormData,
+): Promise<LedgerActionState> {
+  const rawInput = {
+    amount: typeof formData.get("amount") === "string" ? String(formData.get("amount")) : "",
+    note: typeof formData.get("note") === "string" ? String(formData.get("note")) : "",
+    paymentMethod: typeof formData.get("paymentMethod") === "string" ? String(formData.get("paymentMethod")) : "",
+    eventTag: readOptionalString(formData, "eventTag"),
+  };
+
+  const parsedInput = expenseFormSchema.safeParse(rawInput);
+
+  if (!parsedInput.success) {
+    return { error: "ข้อมูลค่าใช้จ่ายไม่ครบหรือไม่ถูกต้อง" };
+  }
+
+  const parsedAmount = Number(parsedInput.data.amount);
+
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return { error: "จำนวนเงินไม่ถูกต้อง" };
+  }
+
+  try {
+    await recordExpense({
+      amount: parsedAmount,
+      note: parsedInput.data.note,
+      paymentMethod: parsedInput.data.paymentMethod,
+      eventTag: parsedInput.data.eventTag,
+    });
+
+    return { success: "บันทึกค่าใช้จ่ายเรียบร้อย" };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "ไม่สามารถบันทึกค่าใช้จ่ายได้";
+    return { error: message };
+  }
 }
