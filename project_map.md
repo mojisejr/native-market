@@ -7,6 +7,7 @@ Core principle: **Simple + Robust** for solo operation.
 ## 2) Landmarks & Architecture
 - **Repo**: [https://github.com/mojisejr/native-market](https://github.com/mojisejr/native-market)
 - **Stack**: Next.js 14 (App Router), Tailwind CSS, Supabase (PostgreSQL), Lucide React.
+- **Rendering Strategy**: Dashboard is **Force-Dynamic** to ensure real-time stock and ledger accuracy.
 - **Root Files**:
     - `project_map.md`: Architecture map and navigation.
     - `package.json`: Dependencies and scripts.

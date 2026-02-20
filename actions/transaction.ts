@@ -278,15 +278,20 @@ export async function recordExpense(input: {
 
 export async function getSummary(): Promise<MarketSummary> {
   const supabase = getSupabaseServerClient();
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+
+  // Calculate Start of Day in Thailand Time (GMT+7)
+  const now = new Date();
+  const THAILAND_OFFSET = 7 * 60 * 60 * 1000;
+  const startOfDay = new Date(now.getTime() + THAILAND_OFFSET);
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const startOfDayInUTC = new Date(startOfDay.getTime() - THAILAND_OFFSET);
 
   const [{ data: transactionsData, error: transactionsError }, { count, error: inventoryError }] =
     await Promise.all([
       supabase
         .from("market_transactions")
         .select("id, created_at, type, amount, items, note, payment_method, event_tag")
-        .gte("created_at", startOfDay.toISOString()),
+        .gte("created_at", startOfDayInUTC.toISOString()),
       supabase.from("market_inventory").select("id", { count: "exact", head: true }).eq("is_active", true),
     ]);
 

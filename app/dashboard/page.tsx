@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MarketInventoryRow, MarketTransactionRow } from "@/lib/market-types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("th-TH", {
     style: "currency",
@@ -33,7 +36,7 @@ export default async function DashboardPage() {
     const [inventoryData, summaryData, recentData] = await Promise.all([
       getInventory(),
       getSummary(),
-      getRecentTransactions(10),
+      getRecentTransactions(30),
     ]);
 
     inventory = inventoryData;

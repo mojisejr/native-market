@@ -39,20 +39,25 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
         {transactions.length === 0 ? (
           <p className="text-sm text-white/70">ยังไม่มีรายการธุรกรรม</p>
         ) : (
-          <ul className="space-y-2">
-            {transactions.map((item) => (
-              <li key={item.id} className="flex items-start justify-between rounded-xl border border-white/10 bg-white/5 p-3">
-                <div>
-                  <p className="text-sm font-medium text-white">{mapTypeLabel(item.type)}</p>
-                  <p className="text-xs text-white/70">{item.note ?? "-"}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{formatCurrency(item.amount)}</p>
-                  <p className="text-xs text-white/60">{new Date(item.created_at).toLocaleString("th-TH")}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="max-h-[22rem] overflow-y-auto pr-1 sm:max-h-[26rem]">
+            <ul className="space-y-2">
+              {transactions.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-3 sm:flex-row sm:items-start sm:justify-between"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-white">{mapTypeLabel(item.type)}</p>
+                    <p className="truncate text-xs text-white/70">{item.note ?? "-"}</p>
+                  </div>
+                  <div className="shrink-0 text-left sm:text-right">
+                    <p className="text-sm font-semibold text-white">{formatCurrency(item.amount)}</p>
+                    <p className="text-xs text-white/60 sm:whitespace-nowrap">{new Date(item.created_at).toLocaleString("th-TH")}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </CardContent>
     </Card>
