@@ -175,6 +175,22 @@ export async function getInventory(): Promise<MarketInventoryRow[]> {
   return mapInventoryRows(rows);
 }
 
+export async function getInventoryAll(): Promise<MarketInventoryRow[]> {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("market_inventory")
+    .select("id, name, price, stock, category, promo_rule, is_active, created_at, updated_at")
+    .order("is_active", { ascending: false })
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to load all inventory: ${error.message}`);
+  }
+
+  const rows = (data ?? []) as unknown[];
+  return mapInventoryRows(rows);
+}
+
 export async function updateStock(id: string, stock: number): Promise<void> {
   const input = updateStockInputSchema.parse({ id, stock });
   const supabase = getSupabaseServerClient();

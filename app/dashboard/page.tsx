@@ -1,4 +1,5 @@
 import { Banknote, HandCoins, LogOut, Package, Receipt, Wallet } from "lucide-react";
+import Link from "next/link";
 import { logoutAction } from "@/actions/auth";
 import { getInventory } from "@/actions/inventory";
 import { getRecentTransactions, getSummary } from "@/actions/transaction";
@@ -66,12 +67,17 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold text-white">Native Market Dashboard</h1>
           <p className="text-sm text-white/70">Phase 3: POS Grid + Expense + Dashboard Overview</p>
         </div>
-        <form action={logoutAction}>
-          <Button type="submit" variant="secondary">
-            <LogOut className="h-4 w-4" />
-            ออกจากระบบ
+        <div className="flex items-center gap-2">
+          <Button asChild type="button" variant="secondary">
+            <Link href="/dashboard/products">จัดการสินค้า</Link>
           </Button>
-        </form>
+          <form action={logoutAction}>
+            <Button type="submit" variant="secondary">
+              <LogOut className="h-4 w-4" />
+              ออกจากระบบ
+            </Button>
+          </form>
+        </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
