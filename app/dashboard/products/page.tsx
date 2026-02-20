@@ -1,6 +1,7 @@
 import { ArrowLeft, ArchiveRestore, ArchiveX, Package } from "lucide-react";
 import Link from "next/link";
 import { getInventoryAll, toggleProductStatus } from "@/actions/inventory";
+import { ProductModal } from "@/components/pos/product-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MarketInventoryRow } from "@/lib/market-types";
@@ -36,14 +37,17 @@ export default async function ProductsPage() {
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-white">จัดการสินค้า (Back-office)</h1>
-          <p className="text-sm text-white/70">Phase 2: Product List + Archive/Restore Workflow</p>
+          <p className="text-sm text-white/70">Phase 3: Product List + All-in-One Editor Modal</p>
         </div>
-        <Button asChild variant="secondary">
-          <Link href="/dashboard">
-            <ArrowLeft className="h-4 w-4" />
-            กลับหน้า Dashboard
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ProductModal />
+          <Button asChild variant="secondary">
+            <Link href="/dashboard">
+              <ArrowLeft className="h-4 w-4" />
+              กลับหน้า Dashboard
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <Card>
@@ -96,19 +100,22 @@ export default async function ProductsPage() {
                             await toggleProductStatus(item.id, !item.is_active);
                           }}
                         >
-                          <Button type="submit" size="sm" variant={item.is_active ? "destructive" : "secondary"}>
-                            {item.is_active ? (
-                              <>
-                                <ArchiveX className="h-4 w-4" />
-                                Archive
-                              </>
-                            ) : (
-                              <>
-                                <ArchiveRestore className="h-4 w-4" />
-                                Restore
-                              </>
-                            )}
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <ProductModal product={item} />
+                            <Button type="submit" size="sm" variant={item.is_active ? "destructive" : "secondary"}>
+                              {item.is_active ? (
+                                <>
+                                  <ArchiveX className="h-4 w-4" />
+                                  Archive
+                                </>
+                              ) : (
+                                <>
+                                  <ArchiveRestore className="h-4 w-4" />
+                                  Restore
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </form>
                       </td>
                     </tr>
