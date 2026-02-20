@@ -14,19 +14,19 @@ export function ExpenseForm() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+      <CardHeader className="px-4 pb-2 pt-4 sm:px-6 sm:pb-3 sm:pt-6">
+        <CardTitle className="flex items-center gap-2 text-base text-white sm:text-xl">
           <ReceiptText className="h-5 w-5" />
           บันทึกค่าใช้จ่าย
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <form action={formAction} className="grid gap-3 sm:grid-cols-2">
+      <CardContent className="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 sm:pt-3">
+        <form action={formAction} className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
           <Input name="amount" type="number" min={0.01} step="0.01" placeholder="จำนวนเงิน" required />
           <select
             name="paymentMethod"
             defaultValue="cash"
-            className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-primary"
+            className="h-10 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <option value="cash">เงินสด</option>
             <option value="transfer">โอน</option>
@@ -35,10 +35,10 @@ export function ExpenseForm() {
           <Input name="note" placeholder="รายละเอียดค่าใช้จ่าย" required className="sm:col-span-2" />
           <Input name="eventTag" placeholder="event tag (optional)" className="sm:col-span-2" />
 
-          {state.error ? <p className="text-sm text-red-300 sm:col-span-2">{state.error}</p> : null}
-          {state.success ? <p className="text-sm text-emerald-300 sm:col-span-2">{state.success}</p> : null}
+          {state.error ? <p className="text-xs text-red-300 sm:col-span-2 sm:text-sm">{state.error}</p> : null}
+          {state.success ? <p className="text-xs text-emerald-300 sm:col-span-2 sm:text-sm">{state.success}</p> : null}
 
-          <Button type="submit" disabled={pending} className="sm:col-span-2 sm:w-fit">
+          <Button type="submit" disabled={pending} className="w-full sm:col-span-2 sm:w-fit">
             {pending ? "กำลังบันทึก..." : "บันทึกค่าใช้จ่าย"}
           </Button>
         </form>
