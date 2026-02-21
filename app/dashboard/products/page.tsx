@@ -94,14 +94,14 @@ export default async function ProductsPage() {
                         )}
                       </td>
                       <td className="px-3 py-3 text-right">
-                        <form
-                          action={async () => {
-                            "use server";
-                            await toggleProductStatus(item.id, !item.is_active);
-                          }}
-                        >
-                          <div className="flex justify-end gap-2">
-                            <ProductModal product={item} />
+                        <div className="flex justify-end gap-2">
+                          <ProductModal product={item} />
+                          <form
+                            action={async () => {
+                              "use server";
+                              await toggleProductStatus(item.id, !item.is_active);
+                            }}
+                          >
                             <Button type="submit" size="sm" variant={item.is_active ? "destructive" : "secondary"}>
                               {item.is_active ? (
                                 <>
@@ -115,8 +115,8 @@ export default async function ProductsPage() {
                                 </>
                               )}
                             </Button>
-                          </div>
-                        </form>
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   ))}

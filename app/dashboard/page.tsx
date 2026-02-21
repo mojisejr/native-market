@@ -69,12 +69,15 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild type="button" variant="secondary">
-            <Link href="/dashboard/products">จัดการสินค้า</Link>
+            <Link href="/dashboard/products" aria-label="จัดการสินค้า">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">จัดการสินค้า</span>
+            </Link>
           </Button>
           <form action={logoutAction}>
-            <Button type="submit" variant="secondary">
+            <Button type="submit" variant="secondary" aria-label="ออกจากระบบ">
               <LogOut className="h-4 w-4" />
-              ออกจากระบบ
+              <span className="hidden sm:inline">ออกจากระบบ</span>
             </Button>
           </form>
         </div>
