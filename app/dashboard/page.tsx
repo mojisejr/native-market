@@ -61,13 +61,13 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-10">
-      <header className="mb-6 flex items-center justify-between">
+    <main className="mx-auto min-h-screen w-full max-w-5xl overflow-x-clip px-4 py-8 sm:px-6 sm:py-10">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 sm:items-center">
         <div>
           <h1 className="text-2xl font-semibold text-white">Native Market Dashboard</h1>
           <p className="text-sm text-white/70">Phase 3: POS Grid + Expense + Dashboard Overview</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <Button asChild type="button" variant="secondary">
             <Link href="/dashboard/products" aria-label="จัดการสินค้า">
               <Package className="h-4 w-4" />
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
+          <Card key={label} className="min-w-0">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2 text-white/70">
                 <Icon className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
         <PosGrid inventory={inventory} />
       </section>
 
-      <section className="mt-6 grid gap-4 lg:grid-cols-2">
+      <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-2">
         <ExpenseForm />
         <RecentTransactions transactions={recentTransactions} />
       </section>

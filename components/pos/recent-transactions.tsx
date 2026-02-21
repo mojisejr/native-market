@@ -31,11 +31,11 @@ function mapTypeLabel(type: MarketTransactionRow["type"]): string {
 
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
-    <Card>
+    <Card className="min-w-0 overflow-hidden">
       <CardHeader className="px-4 pb-2 pt-4 sm:px-6 sm:pb-3 sm:pt-6">
         <CardTitle className="text-base text-white sm:text-xl">รายการล่าสุด</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 sm:pt-3">
+      <CardContent className="min-w-0 px-4 pb-4 pt-2 sm:px-6 sm:pb-6 sm:pt-3">
         {transactions.length === 0 ? (
           <p className="text-sm text-white/70">ยังไม่มีรายการธุรกรรม</p>
         ) : (
@@ -44,7 +44,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
               {transactions.map((item) => (
                 <li
                   key={item.id}
-                  className="flex flex-col gap-1.5 rounded-xl border border-white/10 bg-white/5 p-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2 sm:p-3"
+                  className="flex min-w-0 flex-col gap-1.5 rounded-xl border border-white/10 bg-white/5 p-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2 sm:p-3"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-white">{mapTypeLabel(item.type)}</p>

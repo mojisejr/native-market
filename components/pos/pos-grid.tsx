@@ -130,16 +130,16 @@ export function PosGrid({ inventory }: PosGridProps) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-      <Card>
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[2fr_1fr]">
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <ShoppingCart className="h-5 w-5" />
             POS Grid (ขายสินค้า)
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <CardContent className="min-w-0 space-y-3">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             {inventory.map((item) => {
               const qty = quantities[item.id] ?? 0;
               const promotionLabel = formatPromotionLabel(item);
@@ -153,9 +153,9 @@ export function PosGrid({ inventory }: PosGridProps) {
                   : null;
 
               return (
-                <div key={item.id} className="glass-card p-3">
+                <div key={item.id} className="glass-card min-w-0 p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-white">{item.name}</p>
+                    <p className="break-words text-sm font-medium text-white">{item.name}</p>
                     {promotionLabel ? (
                       <span className="rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-[10px] font-medium text-amber-200">
                         โปรโมชั่น
@@ -192,12 +192,12 @@ export function PosGrid({ inventory }: PosGridProps) {
         </CardContent>
       </Card>
 
-      <Card className="glass-card-strong">
+      <Card className="glass-card-strong min-w-0">
         <CardHeader>
           <CardTitle className="text-white">ตะกร้าขาย</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form action={formAction} className="space-y-3">
+        <CardContent className="min-w-0">
+          <form action={formAction} className="min-w-0 space-y-3">
             <input type="hidden" name="itemsJson" value={JSON.stringify(itemsPayload)} />
 
             <label className="block text-xs text-white/70" htmlFor="paymentMethod">
@@ -218,7 +218,7 @@ export function PosGrid({ inventory }: PosGridProps) {
             </select>
 
             {paymentMethod === "cash" ? (
-              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="min-w-0 rounded-xl border border-white/10 bg-black/20 p-3">
                 <label className="mb-2 block text-xs text-white/70" htmlFor="receivedAmount">
                   ลูกค้าจ่ายมา
                 </label>
