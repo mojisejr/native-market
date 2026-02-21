@@ -37,6 +37,8 @@ function formatPromotionLabel(item: MarketInventoryRow): string | null {
 
 export function PosGrid({ inventory }: PosGridProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "transfer">("cash");
+  const [receivedAmountInput, setReceivedAmountInput] = useState<string>("");
   const [state, formAction, pending] = useActionState(recordSaleAction, initialState);
 
   const selectedItems = useMemo(
@@ -75,6 +77,26 @@ export function PosGrid({ inventory }: PosGridProps) {
       })),
     [selectedItems],
   );
+
+  const receivedAmount = useMemo(() => {
+    const parsed = Number(receivedAmountInput);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return 0;
+    }
+
+    return parsed;
+  }, [receivedAmountInput]);
+
+  const changeAmount = useMemo(() => {
+    if (paymentMethod !== "cash") {
+      return 0;
+    }
+
+    return receivedAmount - totals.total;
+  }, [paymentMethod, receivedAmount, totals.total]);
+
+  const hasReceivedAmount = receivedAmountInput.trim().length > 0;
+  const isCashPaymentIncomplete = paymentMethod === "cash" && (!hasReceivedAmount || changeAmount < 0);
 
   function increaseQty(id: string, maxStock: number): void {
     setQuantities((previous) => {
@@ -184,12 +206,43 @@ export function PosGrid({ inventory }: PosGridProps) {
             <select
               id="paymentMethod"
               name="paymentMethod"
-              defaultValue="cash"
+              value={paymentMethod}
+              onChange={(event) => {
+                const nextMethod = event.target.value === "transfer" ? "transfer" : "cash";
+                setPaymentMethod(nextMethod);
+              }}
               className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-primary"
             >
               <option value="cash">เงินสด</option>
               <option value="transfer">โอน</option>
             </select>
+
+            {paymentMethod === "cash" ? (
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <label className="mb-2 block text-xs text-white/70" htmlFor="receivedAmount">
+                  ลูกค้าจ่ายมา
+                </label>
+                <Input
+                  id="receivedAmount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={receivedAmountInput}
+                  onChange={(event) => setReceivedAmountInput(event.target.value)}
+                  placeholder="0.00"
+                />
+                {hasReceivedAmount ? (
+                  changeAmount >= 0 ? (
+                    <p className="mt-2 text-sm font-medium text-emerald-300">เงินทอน {formatCurrency(changeAmount)}</p>
+                  ) : (
+                    <p className="mt-2 text-sm font-medium text-amber-300">ยังขาดอีก {formatCurrency(Math.abs(changeAmount))}</p>
+                  )
+                ) : (
+                  <p className="mt-2 text-xs text-white/60">กรอกยอดรับเงินเพื่อคำนวณเงินทอน</p>
+                )}
+              </div>
+            ) : null}
 
             <Input name="note" placeholder="หมายเหตุ (ถ้ามี)" />
             <Input name="eventTag" placeholder="event tag (optional)" />
@@ -209,7 +262,7 @@ export function PosGrid({ inventory }: PosGridProps) {
             {state.error ? <p className="text-xs text-red-300">{state.error}</p> : null}
             {state.success ? <p className="text-xs text-emerald-300">{state.success}</p> : null}
 
-            <Button type="submit" className="w-full" disabled={pending || selectedItems.length === 0}>
+            <Button type="submit" className="w-full" disabled={pending || selectedItems.length === 0 || isCashPaymentIncomplete}>
               {pending ? "กำลังบันทึก..." : "ยืนยันการขาย"}
             </Button>
           </form>
